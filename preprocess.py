@@ -1,37 +1,27 @@
 import matplotlib.pyplot as plt
-from mne.io import concatenate_raws, read_raw_edf
-from mne.datasets import eegbci
-from mne.channels import make_standard_montage
 from mne import Epochs, pick_types, events_from_annotations
-
-
-def load_filter_dataset(subject=1, runs=[3, 7, 11], Hz_min=7.0, Hz_max=30):
-    # mne library loader of datas
-    raw_fnames = eegbci.load_data(subject, runs, path="./")
-    raws = [read_raw_edf(f, preload=True) for f in raw_fnames]
-    raw = concatenate_raws(raws)
-    eegbci.standardize(raw)
-    # set color for each channel
-    montage = make_standard_montage("standard_1005")
-    raw.set_montage(montage)
-    raw.filter(7.0, 30.0, fir_design="firwin")
-    return raw
+import mne
+from utils import load_filter_dataset
 
 
 def plot_datas(raw):
-    events, event_id = events_from_annotations(raw, event_id=dict(T1=0, T2=1))
+    """plot data as asked in the subject
+    there is more ways to plot and study data with the mme library"""
+    event_id = dict(left=1, right=2)
+    events, _ = events_from_annotations(raw, event_id=dict(T1=1, T2=2))
     picks = pick_types(raw.info, meg=False, eeg=True, stim=False, eog=False)
 
     # see signals for each channel
-    # fr signal pour chaque electrode placee sur le cerveau
+    # [fr]signal pour chaque electrode placee sur le cerveau
     raw.plot(scalings="auto")
     plt.show()
-    # fr la repartition de la  puissance du signal en
+
+    # power of the signal by frequency and by channel
+    # [fr] la repartition de la  puissance du signal en
     # fonction des bandes de frequence
     raw.compute_psd().plot(picks=picks, exclude="bads")
     plt.show()
-
-    # la meme une fois que le signal a ete filtre
+    # TODO: [Bonus] filtered signal vue with wavelet or fourier transform
     picks_shadow = pick_types(
         raw.info, meg="grad", eeg=True, eog=False, stim=False, exclude="bads"
     )
@@ -52,6 +42,11 @@ def plot_datas(raw):
         average=True, picks=picks_shadow, exclude="bads"
     )
     plt.show()
+    # events through time
+    fig = mne.viz.plot_events(
+        events, sfreq=raw.info["sfreq"], first_samp=raw.first_samp, event_id=event_id
+    )
+    fig.subplots_adjust(right=0.7)  # to see the legend
 
 
 def main():
@@ -60,4 +55,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as msg:
+        print(f"Error: {msg}")

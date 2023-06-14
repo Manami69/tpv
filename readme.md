@@ -26,7 +26,5 @@ conda deactivate
 https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html
 https://scikit-learn.org/stable/modules/generated/sklearn.base.TransformerMixin.html
 
-## Definitions
-
- - *channel* : signal recueilli par un eletrode place sur le crane
- 
+## Links 
+ - [useful video for common spatial pattern](https://www.youtube.com/watch?v=EAQcu6DLAS0)
