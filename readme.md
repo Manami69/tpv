@@ -28,3 +28,5 @@ https://scikit-learn.org/stable/modules/generated/sklearn.base.TransformerMixin.
 
 ## Links 
  - [useful video for common spatial pattern](https://www.youtube.com/watch?v=EAQcu6DLAS0)
+ - [scikit-learn Baseestimator and TransformerMixin](https://sklearn-template.readthedocs.io/en/latest/user_guide.html)
+ - [cross validation explanation](https://datascientest.com/cross-validation)

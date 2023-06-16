@@ -31,3 +31,5 @@ By default we'll use `task 1` motions :
  - `T2` => closing then opening right fist"""
     events, _ = mne.events_from_annotations(raw, event_id=dict(T1=1, T2=2))
     return (events, event_id)
+
+# %%
