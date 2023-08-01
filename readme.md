@@ -20,13 +20,11 @@ conda deactivate
  - [load this dataset with mne](https://mne.tools/stable/overview/datasets_index.html#eegbci-motor-imagery)
 
 ## infos
->[total-perspective-vortex] Hello, I have trouble understanding what "You have to use the pipeline object from sklearn (use baseEstimator and transformerMixin classes of sklearn)" means from V.1.3 Implementation. If anyone could explain it to me I would greatly appreciate it.
-
->>Hello, use these two functions to create your pipeline
-https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html
-https://scikit-learn.org/stable/modules/generated/sklearn.base.TransformerMixin.html
 
 ## Links 
  - [useful video for common spatial pattern](https://www.youtube.com/watch?v=EAQcu6DLAS0)
  - [scikit-learn Baseestimator and TransformerMixin](https://sklearn-template.readthedocs.io/en/latest/user_guide.html)
+ - [same](https://medium.com/mlearning-ai/workflow-to-build-sklearn-pipelines-54abffddccb1)
+ - [csp mne source code](https://github.com/mne-tools/mne-python/blob/main/mne/decoding/csp.py)
  - [cross validation explanation](https://datascientest.com/cross-validation)
+ - [brain explosion](https://www.scielo.org.mx/scielo.php?pid=S0035-001X2022000400012&script=sci_arttext)

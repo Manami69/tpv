@@ -44,7 +44,8 @@ def plot_datas(raw):
     plt.show()
     # events through time
     fig = mne.viz.plot_events(
-        events, sfreq=raw.info["sfreq"], first_samp=raw.first_samp, event_id=event_id
+        events, sfreq=raw.info["sfreq"], first_samp=raw.first_samp,
+        event_id=event_id
     )
     fig.subplots_adjust(right=0.7)  # to see the legend
 
