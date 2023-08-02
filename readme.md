@@ -28,3 +28,4 @@ conda deactivate
  - [csp mne source code](https://github.com/mne-tools/mne-python/blob/main/mne/decoding/csp.py)
  - [cross validation explanation](https://datascientest.com/cross-validation)
  - [brain explosion](https://www.scielo.org.mx/scielo.php?pid=S0035-001X2022000400012&script=sci_arttext)
+ - [choose classifier](https://neuro.inf.unibe.ch/AlgorithmsNeuroscience/Tutorial_files/ApplyingMachineLearningMethods_1.html)
