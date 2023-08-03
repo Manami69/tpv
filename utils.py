@@ -1,5 +1,6 @@
 from mne.io import concatenate_raws, read_raw_edf
 from mne.datasets import eegbci
+from mne import Epochs, pick_types
 from mne.channels import make_standard_montage
 import mne
 
@@ -21,7 +22,7 @@ default runs are ones associated with `task 1` : \
     return raw
 
 
-def get_events(raw, event_id=dict(left=1, right=2)):
+def get_filtered_events(raw, tmin=-1.0, tmax=4.0):
     """get events from dataset
 
 See T1 and T2's motions for defined task
@@ -29,7 +30,23 @@ See T1 and T2's motions for defined task
 By default we'll use `task 1` motions :
  - `T1` => closing then opening left fist
  - `T2` => closing then opening right fist"""
-    events, _ = mne.events_from_annotations(raw, event_id=dict(T1=1, T2=2))
-    return (events, event_id)
-
-# %%
+    events, event_id = mne.events_from_annotations(raw,
+                                                   event_id=dict(T1=1, T2=2))
+    picks = pick_types(raw.info, meg=False, eeg=True,
+                       stim=False, eog=False, exclude="bads")
+    # Read epochs (train will be done only between 1 and 2s)
+    # Testing will be done with a running classifier
+    epochs = Epochs(
+        raw,
+        events,
+        event_id,
+        tmin,
+        tmax,
+        proj=True,
+        picks=picks,
+        baseline=None,
+        preload=True,
+    )
+    # epochs_train = epochs.copy().crop(tmin=1.0, tmax=2.0)
+    # epochs_data_train = epochs_train.get_data()
+    return (epochs.get_data(), epochs.events[:, -1] - 1)
