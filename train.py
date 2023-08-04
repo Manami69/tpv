@@ -1,16 +1,26 @@
+import os
 import pickle
+import joblib
 from sklearn import svm
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import (GridSearchCV, StratifiedKFold,
-                                     cross_val_score, train_test_split)
+                                     cross_val_score, train_test_split,
+                                     ShuffleSplit)
 from sklearn.pipeline import make_pipeline, Pipeline
 from utils import load_filter_dataset, get_filtered_events
 from mne.decoding import CSP
 import argparse
+import numpy as np
 
-tasks = {1: [3, 7, 11], 2: [4, 8, 12], 3: [5, 9, 13], 4: [6, 10, 14]}
-
+tasks = {
+    1: [3, 7, 11],
+    2: [4, 8, 12],
+    3: [5, 9, 13],
+    4: [6, 10, 14]
+    }
+PIPELINE_FILE = 'pipeline.pkl'
+DATA_TEST_FILE = 'test_data.pkl'
 
 def load_dataset(subject, task):
     """
@@ -24,12 +34,12 @@ Returns training datas only.
     X_train, X_test, y_train, y_test = train_test_split(
          epochs_data, labels, test_size=0.2, random_state=42)
     test_data = {"X": X_test, "y": y_test}
-    with open("test_data.plk", 'wb') as file:
+    with open(DATA_TEST_FILE, 'wb') as file:
         pickle.dump(test_data, file)
     return (X_train, y_train)
 
 
-def select_pipeline(X, y):
+def select_train_pipeline(X, y):
     """
 Use cross validation in training dataset to choose the best classifier
 algorithm and parameters for this dataset.
@@ -52,11 +62,11 @@ algorithm and parameters for this dataset.
         "score": gs_cv_svm.best_score_,
         "pipeline": gs_cv_svm
     })
-    
+
     # Logistic regression test
-    clf_lr_pip = make_pipeline(csp, LogisticRegression(random_state=42))
+    clf_lr_pip = make_pipeline(csp, LogisticRegression(random_state=0))
     parameters = {'logisticregression__penalty': ['l1', 'l2']}
-    gs_cv_lr = GridSearchCV(clf_lr_pip, parameters, scoring='accuracy', cv=5)
+    gs_cv_lr = GridSearchCV(clf_lr_pip, parameters, scoring='accuracy')
     gs_cv_lr.fit(X, y)
     pipelines_by_cv_score.append({
         "name": "Logistic Regression",
@@ -65,31 +75,33 @@ algorithm and parameters for this dataset.
     })
 
     # LDA
+    cv = ShuffleSplit(n_splits=5, test_size=0.1, random_state=0)
     clf_lda_pip = make_pipeline(csp, LinearDiscriminantAnalysis())
     pipelines_by_cv_score.append({
         "name": "Linear Discriminant Analysis",
-        "score": cross_val_score(clf_lda_pip, X, y, cv=5).mean(),
+        "score": cross_val_score(clf_lda_pip, X, y, cv=cv).mean(),
         "pipeline": clf_lda_pip
     })
+    
+
     best_match = max(pipelines_by_cv_score, key=lambda x: x["score"])
+    if best_match["name"] == "Linear Discriminant Analysis":
+        best_match["pipeline"].fit(X, y)
+    
     print(f"Using {best_match['name']} algorithm with a cross_val_score \
-of {best_match['score']}")
-    return best_match["pipeline"]
-
-
-def train_model(X_train, y_train, pipeline: Pipeline):
-    """
-train model and save it for prediction
-    """
-    pipeline.fit(X_train, y_train)
-    with open("pipeline.plk", 'wb') as file:
-        pickle.dump(pipeline, file)
+of {best_match['score']:.2f}")
+    print(f"Prediction accuracy on training dataset : {best_match['pipeline'].score(X, y):.2f}")
+    joblib.dump(best_match["pipeline"], PIPELINE_FILE, compress=True)
+    
 
 
 def main(subject, task):
+    if os.path.isfile(PIPELINE_FILE):
+        os.remove(PIPELINE_FILE)
+    if os.path.isfile(DATA_TEST_FILE):
+        os.remove(DATA_TEST_FILE)
     (X_train, y_train) = load_dataset(subject, task)
-    pipeline = select_pipeline(X_train, y_train)
-    train_model(X_train, y_train, pipeline)
+    select_train_pipeline(X_train, y_train)
 
 
 if __name__ == "__main__":
@@ -101,17 +113,18 @@ Using physionet EEG Motor Movement/Imagery Dataset.')
                             nargs=1,
                             metavar=('num'),
                             help="subject number (1 .. 109), default=1",
-                            default=1,
+                            default=[1],
                             type=int,
                             choices=range(1, 110))
         parser.add_argument('-t', '--task',
                             nargs=1,
                             metavar=('num'),
                             help="task number (1 .. 4), default=1",
-                            default=1,
+                            default=[1],
                             type=int,
                             choices=range(1, 5))
         args = parser.parse_args()
-        main(args.subject, args.task)
+        print(args)
+        main(args.subject[0], args.task[0])
     except Exception as msg:
         print(f"Error: {msg}")

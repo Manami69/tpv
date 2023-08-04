@@ -18,7 +18,7 @@ default runs are ones associated with `task 1` : \
     # set color for each channel
     montage = make_standard_montage("standard_1005")
     raw.set_montage(montage)
-    raw.filter(freq_min, freq_max, fir_design="firwin")
+    raw.filter(freq_min, freq_max, fir_design="firwin", skip_by_annotation="edge")
     return raw
 
 
@@ -47,6 +47,6 @@ By default we'll use `task 1` motions :
         baseline=None,
         preload=True,
     )
-    # epochs_train = epochs.copy().crop(tmin=1.0, tmax=2.0)
-    # epochs_data_train = epochs_train.get_data()
-    return (epochs.get_data(), epochs.events[:, -1] - 1)
+    epochs_train = epochs.copy().crop(tmin=1.0, tmax=2.0)
+    epochs_data_train = epochs_train.get_data()
+    return (epochs_data_train, epochs.events[:, -1] - 1)
