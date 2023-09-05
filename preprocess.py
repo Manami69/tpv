@@ -21,7 +21,6 @@ def plot_datas(raw):
     # fonction des bandes de frequence
     raw.compute_psd().plot(picks=picks, exclude="bads")
     plt.show()
-    # TODO: [Bonus] filtered signal vue with wavelet or fourier transform
     picks_shadow = pick_types(
         raw.info, meg="grad", eeg=True, eog=False, stim=False, exclude="bads"
     )
