@@ -9,7 +9,6 @@ from sklearn.model_selection import (GridSearchCV, KFold, StratifiedKFold,
                                      ShuffleSplit)
 from sklearn.pipeline import make_pipeline, Pipeline
 from utils import load_filter_dataset, get_filtered_events
-from mne.decoding import CSP
 import argparse
 import numpy as np
 

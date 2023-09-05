@@ -9,7 +9,7 @@ from sklearn.model_selection import (GridSearchCV, KFold, StratifiedKFold,
                                      ShuffleSplit)
 from sklearn.pipeline import make_pipeline, Pipeline
 from utils import load_filter_dataset, get_filtered_events
-from mne.decoding import CSP
+from csp import CustomCSP
 import argparse
 import numpy as np
 
@@ -57,74 +57,22 @@ Use cross validation in training dataset to choose the best classifier
 algorithm and parameters for this dataset.
     """
     # cv_scores_by_frequency = []
-    csp = CSP(n_components=4, reg=None, log=True, norm_trace=False)  # TODO:
+    csp = CustomCSP(n_components=3)  # TODO:
     cv = KFold(n_splits=10)
-    print(raw["FC5"])
     (X, y) = get_filtered_events(raw, tmin=1, tmax=2, freq_min=7, freq_max=30)
-    print(X.shape)
-    print("pouet")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    print(X_train.shape)
     chnls_filter = select_best_channels_for_subject(X_train, y_train)
     fX_train = np.take(X_train, chnls_filter, 1)
     fX_test = np.take(X_test, chnls_filter, 1)
-    pipelines_by_cv_score = []
-    csp = CSP(n_components=4, reg=None, log=True, norm_trace=False)  # TODO:
-
-    # SVM classifier test
-    clf_svm_pip = make_pipeline(csp, svm.SVC(random_state=42))
-    parameters = {'svc__kernel': ['linear', 'rbf', 'sigmoid'],
-                  'svc__C': [0.1, 1, 10]}
-    gs_cv_svm = GridSearchCV(clf_svm_pip,
-                             parameters,
-                             scoring='accuracy',
-                             cv=StratifiedKFold(n_splits=10),
-                             return_train_score=True)
-    gs_cv_svm.fit(fX_train, y_train)
-    pipelines_by_cv_score.append({
-        "name": "Support Vector Machine",
-        "score": gs_cv_svm.best_score_,
-        "pipeline": gs_cv_svm
-    })
-
-    # Logistic regression test
-    clf_lr_pip = make_pipeline(csp, LogisticRegression(random_state=0))
-    parameters = {'logisticregression__penalty': ['l1', 'l2']}
-    gs_cv_lr = GridSearchCV(clf_lr_pip, parameters, scoring='accuracy')
-    gs_cv_lr.fit(fX_train, y_train)
-    pipelines_by_cv_score.append({
-        "name": "Logistic Regression",
-        "score": gs_cv_lr.best_score_,
-        "pipeline": gs_cv_lr
-    })
-
-    # LDA
-    cv = ShuffleSplit(n_splits=5, test_size=0.1, random_state=0)
-    clf_lda_pip = make_pipeline(csp, LinearDiscriminantAnalysis())
-    pipelines_by_cv_score.append({
-        "name": "Linear Discriminant Analysis",
-        "score": cross_val_score(clf_lda_pip, fX_train, y_train, cv=cv).mean(),
-        "pipeline": clf_lda_pip
-    })
-
-    best_match = max(pipelines_by_cv_score, key=lambda x: x["score"])
-    if best_match["name"] == "Linear Discriminant Analysis":
-        best_match["pipeline"].fit(fX_train, y_train)
-    
-    print(f"Using {best_match['name']} algorithm with a cross_val_score \
-of {best_match['score']:.2f}")
-    print(f"Prediction accuracy on training dataset : {best_match['pipeline'].score(fX_train, y_train):.2f}")
-    joblib.dump(best_match["pipeline"], f'{DIR}/pipeline_s{subject}_t{task}.pkl', compress=True)
-    # pipeline = make_pipeline(csp, LinearDiscriminantAnalysis())
-    # score = cross_val_score(pipeline, fX_train, y_train, cv=cv)
-    # print(score)
-    # print(f"cross val score :{score.mean()}")
-    # pipeline.fit(fX_train, y_train)
-    # print(f"Prediction accuracy on training dataset : {pipeline.score(fX_train, y_train):.2f}")
+    pipeline = make_pipeline(csp, LinearDiscriminantAnalysis())
+    score = cross_val_score(pipeline, fX_train, y_train, cv=cv)
+    print(f"cross val score :{score.mean()}")
+    pipeline.fit(fX_train, y_train)
+    print(f"Prediction accuracy on training dataset : {pipeline.score(fX_train, y_train):.2f}")
     test_data = {"X": fX_test, "y": y_test}
     with open(f'{DIR}/test_data_s{subject}_t{task}.pkl', 'wb') as file:
         pickle.dump(test_data, file)
-    # joblib.dump(pipeline, PIPELINE_FILE, compress=True)
+    joblib.dump(pipeline, f'{DIR}/pipeline_s{subject}_t{task}.pkl', compress=True)
 
 
 def main(subject, task):

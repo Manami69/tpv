@@ -3,37 +3,47 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from scipy.linalg import eigh
 
 
-class CSP(BaseEstimator, TransformerMixin):
-    def __init__(self, n_components=None):
-        self.n_components = n_components
+    
+    # def _compute_covariance_matrices(self, X, y):
+    #     _, n_channels, _ = X.shape
 
-    def fit(self, X, y):
-        # Séparation des données en deux classes
-        class_1 = X[y == 0]
-        class_2 = X[y == 1]
+    #     covs = []
+    #     for cur_class in self._classes:
+    #         """Concatenate epochs before computing the covariance."""
+    #         x_class = X[y==cur_class]
+    #         x_class = np.transpose(x_class, [1, 0, 2])
+    #         x_class = x_class.reshape(n_channels, -1)
+    #         cov_mat = np.cov(x_class)
+    #         covs.append(cov_mat)
+        
+    #     return np.stack(covs)
 
-        # Calcul des matrices de covariance pour chaque classe
-        cov_1 = np.cov(class_1, rowvar=False)
-        cov_2 = np.cov(class_2, rowvar=False)
+# class CustomCSP(BaseEstimator, TransformerMixin):
+#     def __init__(self, n_components=None):
+#         self.n_components = n_components
 
-        # Calcul de la matrice CSP
-        eigvals, eigvecs = eigh(cov_1, cov_1 + cov_2)
+#     def fit(self, X, y):
+#         covs = np.array([np.cov(epoch, rowvar = False) for epoch in X])
 
-        # Tri des vecteurs propres par ordre décroissant des valeurs propres
-        sorted_indices = np.argsort(eigvals)[::-1]
-        eigvals = eigvals[sorted_indices]
-        eigvecs = eigvecs[:, sorted_indices]
+#         class_0 = np.mean(covs[y == 0], axis=0)
+#         class_1 = np.mean(covs[y == 1], axis=0)
+#         W = class_0 - class_1
 
-        # Réduction dimensionnelle si spécifié
-        if self.n_components is not None:
-            eigvecs = eigvecs[:, :self.n_components]
+#         eigvals, eigvecs = eigh(W)
 
-        self.csp_components_ = eigvecs
+#         sorted_indices = np.argsort(eigvals)[::-1]
+#         eigvals = eigvals[sorted_indices]
+#         eigvecs = eigvecs[:, sorted_indices]
 
-    def transform(self, X):
-        # Projection des données sur les composantes spatiales CSP
-        return np.dot(X, self.csp_components_)
+#         if self.n_components is not None:
+#             eigvecs = eigvecs[:, :self.n_components]
 
-    def fit_transform(self, X, y):
-        self.fit(X, y)
-        return self.transform(X)
+#         self.filter_components_ = eigvecs
+#         return self
+
+#     def transform(self, X):
+#         # Projection des données sur les composantes spatiales CSP
+#         return np.array([np.dot(epoch, self.filter_components_ ) for epoch in X])
+
+#     def fit_transform(self, X, y, **fit_params): 
+#         return super().fit_transform(X, y=y, **fit_params)
