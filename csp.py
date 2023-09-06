@@ -3,47 +3,40 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from scipy.linalg import eigh
 
 
-    
-    # def _compute_covariance_matrices(self, X, y):
-    #     _, n_channels, _ = X.shape
 
-    #     covs = []
-    #     for cur_class in self._classes:
-    #         """Concatenate epochs before computing the covariance."""
-    #         x_class = X[y==cur_class]
-    #         x_class = np.transpose(x_class, [1, 0, 2])
-    #         x_class = x_class.reshape(n_channels, -1)
-    #         cov_mat = np.cov(x_class)
-    #         covs.append(cov_mat)
+class CustomCSP(BaseEstimator, TransformerMixin):
+    def __init__(self, n_components=None):
+        self.n_components = n_components
+
+    def fit(self, X, y):
+        X_1 = X[y == 0]
+        X_2 = X[y == 1]
         
-    #     return np.stack(covs)
+        C_1 = self._get_2D_cov(X_1)
+        C_2 = self._get_2D_cov(X_2)
 
-# class CustomCSP(BaseEstimator, TransformerMixin):
-#     def __init__(self, n_components=None):
-#         self.n_components = n_components
+        eigvals, eigvecs = eigh(C_1, C_1 + C_2)
 
-#     def fit(self, X, y):
-#         covs = np.array([np.cov(epoch, rowvar = False) for epoch in X])
+        sorted_indices = np.argsort(np.abs(eigvals - 0.5))[::-1]
+        eigvecs = eigvecs[:, sorted_indices]
 
-#         class_0 = np.mean(covs[y == 0], axis=0)
-#         class_1 = np.mean(covs[y == 1], axis=0)
-#         W = class_0 - class_1
+        if self.n_components is not None:
+            eigvecs = eigvecs[:, :self.n_components]
+        self.filter_components_ = eigvecs
 
-#         eigvals, eigvecs = eigh(W)
+    def transform(self, X):
+        """Compute CSP filter on X Datas and returns the power of
+            CSP features averaged over time and shape"""
+        X = np.array([np.dot(self.filter_components_.T, epoch) for epoch in X])
+        X = (X**2).mean(axis=2)
+        return X
 
-#         sorted_indices = np.argsort(eigvals)[::-1]
-#         eigvals = eigvals[sorted_indices]
-#         eigvecs = eigvecs[:, sorted_indices]
+    def fit_transform(self, X, y):
+        self.fit(X, y)
+        return self.transform(X)
 
-#         if self.n_components is not None:
-#             eigvecs = eigvecs[:, :self.n_components]
-
-#         self.filter_components_ = eigvecs
-#         return self
-
-#     def transform(self, X):
-#         # Projection des données sur les composantes spatiales CSP
-#         return np.array([np.dot(epoch, self.filter_components_ ) for epoch in X])
-
-#     def fit_transform(self, X, y, **fit_params): 
-#         return super().fit_transform(X, y=y, **fit_params)
+    def _get_2D_cov(self, X_class):
+        n_channels = X_class.shape[1]
+        X_class = np.transpose(X_class, [1, 0, 2])
+        X_class = X_class.reshape(n_channels, -1)
+        return np.cov(X_class)

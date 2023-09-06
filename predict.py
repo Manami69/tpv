@@ -48,10 +48,10 @@ the result
 
 def main(all, subject, task):
     if all:
-        tasks_scores = np.empty((4, 109))
+        tasks_scores = np.empty((6, 109))
         for s in range(1, 110):
-            subject_scores = np.empty(4)
-            for t in range(1, 5):
+            subject_scores = np.empty(6)
+            for t in range(1, 7):
                 trained_pipeline = load_pipeline(s, t)
                 test_dataset = load_test_dataset(s, t)
                 predictions = trained_pipeline.predict(test_dataset["X"])
@@ -87,10 +87,10 @@ Using physionet EEG Motor Movement/Imagery Dataset.')
         parser.add_argument('-t', '--task',
                             nargs=1,
                             metavar=('num'),
-                            help="task number (1 .. 4), default=1",
+                            help="task number (1 .. 6), default=1",
                             default=[1],
                             type=int,
-                            choices=range(1, 5))
+                            choices=range(1, 7))
         args = parser.parse_args()
         assert os.path.exists(DIR), "You must train your model first"
         main(args.all, args.subject[0], args.task[0])

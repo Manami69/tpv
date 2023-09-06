@@ -12,13 +12,13 @@ default runs are ones associated with `task 1` : \
 (opening and closing left or right fist)"""
     # mne library loader of datas
     raw_fnames = eegbci.load_data(subject, runs, path="./", verbose="ERROR")
-    raws = [read_raw_edf(f, preload=True) for f in raw_fnames]
-    raw = concatenate_raws(raws)
+    raws = [read_raw_edf(f, preload=True, verbose="ERROR") for f in raw_fnames]
+    raw = concatenate_raws(raws, verbose="ERROR")
     eegbci.standardize(raw)
     # set color for each channel
     montage = make_standard_montage("standard_1005")
-    raw.set_montage(montage)
-    raw.filter(freq_min, freq_max, fir_design="firwin", skip_by_annotation="edge")
+    raw.set_montage(montage, verbose="ERROR")
+    raw.filter(freq_min, freq_max, fir_design="firwin", skip_by_annotation="edge", verbose="ERROR")
     return raw
 
 
@@ -30,9 +30,9 @@ See T1 and T2's motions for defined task
 By default we'll use `task 1` motions :
  - `T1` => closing then opening left fist
  - `T2` => closing then opening right fist"""
-    raw.filter(freq_min, freq_max, fir_design="firwin", skip_by_annotation="edge")
+    raw.filter(freq_min, freq_max, fir_design="firwin", skip_by_annotation="edge", verbose="ERROR")
     events, event_id = mne.events_from_annotations(raw,
-                                                   event_id=dict(T1=1, T2=2))
+                                                   event_id=dict(T1=1, T2=2), verbose="ERROR")
     picks = pick_types(raw.info, meg=False, eeg=True,
                        stim=False, eog=False, exclude="bads")
     # Read epochs (train will be done only between 1 and 2s)
@@ -47,6 +47,7 @@ By default we'll use `task 1` motions :
         picks=picks,
         baseline=None,
         preload=True,
+        verbose="ERROR"
     )
     epochs_train = epochs.copy().crop(tmin=tmin, tmax=tmax)
     epochs_data_train = epochs_train.get_data()
