@@ -3,7 +3,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from scipy.linalg import eigh
 
 
-
 class CustomCSP(BaseEstimator, TransformerMixin):
     def __init__(self, n_components=None):
         self.n_components = n_components
@@ -11,7 +10,7 @@ class CustomCSP(BaseEstimator, TransformerMixin):
     def fit(self, X, y):
         X_1 = X[y == 0]
         X_2 = X[y == 1]
-        
+   
         C_1 = self._get_2D_cov(X_1)
         C_2 = self._get_2D_cov(X_2)
 

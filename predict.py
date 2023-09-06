@@ -4,6 +4,7 @@ import pickle
 from sklearn.pipeline import Pipeline
 import numpy as np
 import joblib
+import time
 
 DIR = "train_datas"
 
@@ -31,19 +32,20 @@ load test dataset
         return test_dataset
 
 
-def get_predictions(subject, task, test_dataset: dict, trained_pipeline: Pipeline):
+def get_predictions(subject, task, test_dataset: dict,
+                    trained_pipeline: Pipeline):
     """
 Use the trained pipeline to make prediction with the test dataset and write \
 the result
     """
     predictions = trained_pipeline.predict(test_dataset["X"])
-
+    print(f"prediction for subject {subject} on task {task}")
     for index, value in enumerate(predictions):
         print(f"predicted [{value}] - real [{test_dataset['y'][index]}]")
+        time.sleep(2)
     accuracy = np.mean(predictions == test_dataset["y"])
-    print(f"Prediction accuracy for subject {subject} on task {task} : {accuracy:.2f}" )
-
-
+    print(f"Prediction accuracy for subject {subject} on task {task} : \
+{accuracy:.2f}")
 
 
 def main(all, subject, task):
@@ -58,8 +60,9 @@ def main(all, subject, task):
                 score = np.mean(predictions == test_dataset["y"])
                 subject_scores[t - 1] = score
                 tasks_scores[t-1][s-1] = score
-            print(f"prediction accuracy for subject {s} is {subject_scores.mean():.2f}")
-        for t in range(4):
+            print(f"prediction accuracy for subject {s} is \
+{subject_scores.mean():.2f}")
+        for t in range(6):
             print(f"task {t} accuracy score is {tasks_scores[t].mean():.2f}")
         print(f"Total accuracy score is {tasks_scores.mean(axis=0).mean():.2f}")
 
