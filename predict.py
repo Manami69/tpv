@@ -63,9 +63,10 @@ def main(all, subject, task):
             print(f"prediction accuracy for subject {s} is \
 {subject_scores.mean():.2f}")
         for t in range(6):
-            print(f"task {t} accuracy score is {tasks_scores[t].mean():.2f}")
-        print(f"Total accuracy score is {tasks_scores.mean(axis=0).mean():.2f}")
-
+            print(f"task {t + 1} accuracy score is \
+{tasks_scores[t].mean():.2f}")
+        print(f"Total accuracy score is \
+{tasks_scores.mean(axis=0).mean():.2f}")
     else:
         trained_pipeline = load_pipeline(subject, task)
         test_dataset = load_test_dataset(subject, task)
